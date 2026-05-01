@@ -29,3 +29,8 @@ COLOR_SCHEMES: dict[str, ColorScheme] = {
     "colorblind": ColorScheme("colorblind", x="35;1", o="36;1", highlight="43;30;1"),
 }
 
+
+class Renderer(ABC):
+    @abstractmethod
+    def render(self, state: GameState) -> str:
+
