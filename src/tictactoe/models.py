@@ -12,3 +12,15 @@ class Player(Enum):
     O = "O"
     NONE = "."
 
+    @property
+    def opponent(self) -> Player:
+        if self is Player.X:
+            return Player.O
+        if self is Player.O:
+            return Player.X
+        return Player.NONE
+
+    @property
+    def is_mark(self) -> bool:
+        return self is not Player.NONE
+
