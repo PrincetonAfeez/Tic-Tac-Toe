@@ -140,3 +140,8 @@ class Board:
         normalized = tuple(Player.from_value(cell) for cell in cells)
         object.__setattr__(self, "cells", normalized)
 
+    @classmethod
+    def empty(cls, size: int = 3, k: int | None = None) -> Board:
+        win_length = 3 if k is None else k
+        return cls(size=size, k=win_length)
+
