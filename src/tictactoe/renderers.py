@@ -49,3 +49,13 @@ def outcome_text(state: GameState) -> str:
         return f"{winner.value} wins; {loser.value} made the line"
     return f"{winner.value} wins"
 
+def _history_text(state: GameState, limit: int = 5) -> str:
+    if not state.history:
+        return "History: empty"
+    moves = "  ".join(
+        f"{move.move_number}.{move.player.value}@{move.position}" for move in state.history[-limit:]
+    )
+    prefix = "History"
+    if len(state.history) > limit:
+        prefix += f" (last {limit})"
+    return f"{prefix}: {moves}"
