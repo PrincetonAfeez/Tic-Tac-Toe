@@ -113,3 +113,9 @@ class CoordinateRenderer(ClassicRenderer):
         if cell is Player.NONE:
             return ansi.style(position.label, self.color_scheme.dim, enabled_=self.use_color)
         return super()._cell_text(state, position)
+
+class MinimalRenderer(Renderer):
+    def render(self, state: GameState) -> str:
+        return f"{state.board:compact} {state.outcome.value}"
+
+
