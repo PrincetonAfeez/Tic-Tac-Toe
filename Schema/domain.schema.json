@@ -1,0 +1,268 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/PrincetonAfeez/Tic-Tac-Toe/Schema/domain.schema.json",
+  "title": "Tic-Tac-Toe Domain Model Schema",
+  "description": "Reusable JSON Schema definitions for the immutable Tic-Tac-Toe domain models.",
+  "$defs": {
+    "Cell": {
+      "title": "Cell",
+      "description": "Board cell value. A dot represents an empty cell.",
+      "type": "string",
+      "enum": [
+        "X",
+        "O",
+        "."
+      ]
+    },
+    "Player": {
+      "title": "Player",
+      "description": "A real player mark. Use Cell when empty values are allowed.",
+      "type": "string",
+      "enum": [
+        "X",
+        "O"
+      ]
+    },
+    "Outcome": {
+      "title": "Outcome",
+      "type": "string",
+      "enum": [
+        "in_progress",
+        "x_wins",
+        "o_wins",
+        "draw",
+        "abandoned"
+      ]
+    },
+    "Position": {
+      "title": "Position",
+      "description": "Zero-based board coordinate.",
+      "type": "object",
+      "required": [
+        "row",
+        "col"
+      ],
+      "properties": {
+        "row": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "col": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "Board": {
+      "title": "Board",
+      "type": "object",
+      "required": [
+        "size",
+        "k",
+        "cells"
+      ],
+      "properties": {
+        "size": {
+          "type": "integer",
+          "minimum": 3,
+          "default": 3
+        },
+        "k": {
+          "type": "integer",
+          "minimum": 2,
+          "default": 3,
+          "description": "Win length. Must be less than or equal to size."
+        },
+        "cells": {
+          "type": "array",
+          "description": "Flat row-major cells array. Application invariant: length must equal size * size.",
+          "items": {
+            "$ref": "#/$defs/Cell"
+          },
+          "minItems": 9
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "size": {
+                "const": 3
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "cells": {
+                "minItems": 9,
+                "maxItems": 9
+              },
+              "k": {
+                "maximum": 3
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "size": {
+                "const": 4
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "cells": {
+                "minItems": 16,
+                "maxItems": 16
+              },
+              "k": {
+                "maximum": 4
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "size": {
+                "const": 5
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "cells": {
+                "minItems": 25,
+                "maxItems": 25
+              },
+              "k": {
+                "maximum": 5
+              }
+            }
+          }
+        }
+      ]
+    },
+    "Move": {
+      "title": "Move",
+      "description": "Persisted move shape used in saved games.",
+      "type": "object",
+      "required": [
+        "player",
+        "row",
+        "col",
+        "timestamp",
+        "move_number"
+      ],
+      "properties": {
+        "player": {
+          "$ref": "#/$defs/Player"
+        },
+        "row": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "col": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "timestamp": {
+          "type": "number",
+          "minimum": 0
+        },
+        "move_number": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "WinCondition": {
+      "title": "WinCondition",
+      "type": "object",
+      "required": [
+        "player",
+        "positions"
+      ],
+      "properties": {
+        "player": {
+          "$ref": "#/$defs/Player"
+        },
+        "positions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Position"
+          },
+          "minItems": 2,
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "GameState": {
+      "title": "GameState",
+      "type": "object",
+      "required": [
+        "version",
+        "metadata",
+        "board",
+        "next_player",
+        "history",
+        "outcome",
+        "winning_line",
+        "misere",
+        "started_at"
+      ],
+      "properties": {
+        "version": {
+          "type": "integer",
+          "const": 1
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": true,
+          "default": {}
+        },
+        "board": {
+          "$ref": "#/$defs/Board"
+        },
+        "next_player": {
+          "$ref": "#/$defs/Player"
+        },
+        "history": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Move"
+          }
+        },
+        "outcome": {
+          "$ref": "#/$defs/Outcome"
+        },
+        "winning_line": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/WinCondition"
+            }
+          ]
+        },
+        "misere": {
+          "type": "boolean",
+          "default": false
+        },
+        "started_at": {
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "$ref": "#/$defs/GameState"
+}

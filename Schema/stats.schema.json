@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/PrincetonAfeez/Tic-Tac-Toe/Schema/stats.schema.json",
+  "title": "Tic-Tac-Toe Stats Schema",
+  "description": "Validates aggregate stats stored at ~/.tictactoe/stats.json.",
+  "type": "object",
+  "propertyNames": {
+    "minLength": 1
+  },
+  "additionalProperties": {
+    "type": "object",
+    "required": [
+      "wins",
+      "losses",
+      "draws"
+    ],
+    "properties": {
+      "wins": {
+        "type": "integer",
+        "minimum": 0,
+        "default": 0
+      },
+      "losses": {
+        "type": "integer",
+        "minimum": 0,
+        "default": 0
+      },
+      "draws": {
+        "type": "integer",
+        "minimum": 0,
+        "default": 0
+      }
+    },
+    "additionalProperties": false
+  },
+  "examples": [
+    {
+      "minimax": {
+        "wins": 10,
+        "losses": 2,
+        "draws": 4
+      },
+      "random": {
+        "wins": 2,
+        "losses": 10,
+        "draws": 4
+      }
+    }
+  ]
+}
