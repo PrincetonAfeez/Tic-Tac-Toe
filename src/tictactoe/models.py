@@ -64,3 +64,34 @@ class Outcome(Enum):
         msg = "Player.NONE cannot win"
         raise ValueError(msg)
 
+@dataclass(frozen=True, order=True)
+class Position:
+    row: int
+    col: int
+
+    ROW_LABELS: ClassVar[str] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+    def __post_init__(self) -> None:
+        if self.row < 0 or self.col < 0:
+            raise OutOfBoundsError(f"Position must be non-negative, got ({self.row}, {self.col})")
+
+    def to_index(self, size: int) -> int:
+        if self.row >= size or self.col >= size:
+            raise OutOfBoundsError(f"{self} is outside a {size}x{size} board")
+        return self.row * size + self.col
+
+    @classmethod
+    def from_index(cls, index: int, size: int) -> Position:
+        if index < 0 or index >= size * size:
+            raise OutOfBoundsError(f"Index {index} is outside a {size}x{size} board")
+        return cls(index // size, index % size)
+
+    @property
+    def label(self) -> str:
+        row = self.ROW_LABELS[self.row] if self.row < len(self.ROW_LABELS) else f"R{self.row + 1}"
+        return f"{row}{self.col + 1}"
+
+    def __str__(self) -> str:
+        return self.label
+
+
