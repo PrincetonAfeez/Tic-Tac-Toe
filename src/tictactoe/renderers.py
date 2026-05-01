@@ -59,3 +59,16 @@ def _history_text(state: GameState, limit: int = 5) -> str:
     if len(state.history) > limit:
         prefix += f" (last {limit})"
     return f"{prefix}: {moves}"
+
+class ClassicRenderer(Renderer):
+    def __init__(
+        self,
+        *,
+        color_scheme: ColorScheme | None = None,
+        no_color: bool = False,
+        show_coordinates: bool = True,
+    ) -> None:
+        self.color_scheme = color_scheme or COLOR_SCHEMES["classic"]
+        self.use_color = ansi.enabled(no_color)
+        self.show_coordinates = show_coordinates
+
