@@ -104,3 +104,47 @@ class GameRepository(ABC):
     def delete(self, path_or_name: str | Path) -> None:
 
 
+@dataclass
+class JsonGameRepository(GameRepository):
+    root: Path = APP_DIR / "saves"
+
+    def __post_init__(self) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+
+    def save(
+        self,
+        state: GameState,
+        *,
+        name: str | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> Path:
+        stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+        stem = _safe_stem(name or f"{stamp}-{state.board.size}x{state.board.size}")
+        path = self.root / f"{stem}.json"
+        if path.exists():
+            path = self.root / f"{stem}-{stamp}.json"
+        path.write_text(json.dumps(state_to_dict(state, metadata), indent=2), encoding="utf-8")
+        return path
+
+    def load(self, path_or_name: str | Path) -> GameState:
+        path = self._resolve(path_or_name)
+        return state_from_dict(json.loads(path.read_text(encoding="utf-8")))
+
+    def list(self) -> list[Path]:
+        return sorted(self.root.glob("*.json"))
+
+    def delete(self, path_or_name: str | Path) -> None:
+        self._resolve(path_or_name).unlink()
+
+    def _resolve(self, path_or_name: str | Path) -> Path:
+        path = Path(path_or_name).expanduser()
+        if path.exists():
+            return path
+        candidate = self.root / path
+        if candidate.exists():
+            return candidate
+        if candidate.suffix != ".json":
+            candidate = candidate.with_suffix(".json")
+            if candidate.exists():
+                return candidate
+        raise FileNotFoundError(path_or_name)
