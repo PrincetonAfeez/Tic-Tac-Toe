@@ -95,3 +95,17 @@ class Position:
         return self.label
 
 
+@dataclass(frozen=True)
+class WinCondition:
+    player: Player
+    positions: tuple[Position, ...]
+
+    def __post_init__(self) -> None:
+        if self.player is Player.NONE:
+            msg = "A winning line must belong to X or O"
+            raise ValueError(msg)
+        object.__setattr__(self, "positions", tuple(self.positions))
+
+    def contains(self, position: Position) -> bool:
+        return position in self.positions
+
