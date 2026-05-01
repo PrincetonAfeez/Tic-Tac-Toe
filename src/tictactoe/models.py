@@ -1,3 +1,5 @@
+"""Immutable domain models for Tic-Tac-Toe."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -7,13 +9,16 @@ from typing import ClassVar
 
 from .exceptions import CellOccupiedError, InvalidBoardSizeError, OutOfBoundsError
 
+
 class Player(Enum):
+    """Immutable player state."""
     X = "X"
     O = "O"
     NONE = "."
 
     @property
     def opponent(self) -> Player:
+        """Get the opponent of a player."""
         if self is Player.X:
             return Player.O
         if self is Player.O:
@@ -26,6 +31,7 @@ class Player(Enum):
 
     @classmethod
     def from_value(cls, value: str | Player) -> Player:
+        """Create a player from a value."""
         if isinstance(value, Player):
             return value
         normalized = value.strip().upper()
@@ -36,7 +42,9 @@ class Player(Enum):
 
 Cell = Player
 
+
 class Outcome(Enum):
+    """Immutable outcome state."""
     IN_PROGRESS = "in_progress"
     X_WINS = "x_wins"
     O_WINS = "o_wins"
@@ -45,6 +53,7 @@ class Outcome(Enum):
 
     @property
     def winner(self) -> Player | None:
+        """Get the winner of the outcome."""
         if self is Outcome.X_WINS:
             return Player.X
         if self is Outcome.O_WINS:
@@ -57,6 +66,7 @@ class Outcome(Enum):
 
     @classmethod
     def for_winner(cls, player: Player) -> Outcome:
+        """Create an outcome for a winner."""
         if player is Player.X:
             return Outcome.X_WINS
         if player is Player.O:
@@ -64,8 +74,10 @@ class Outcome(Enum):
         msg = "Player.NONE cannot win"
         raise ValueError(msg)
 
+
 @dataclass(frozen=True, order=True)
 class Position:
+    """Immutable position state."""
     row: int
     col: int
 
@@ -97,6 +109,7 @@ class Position:
 
 @dataclass(frozen=True)
 class WinCondition:
+    """Immutable winning line state."""
     player: Player
     positions: tuple[Position, ...]
 
@@ -109,8 +122,10 @@ class WinCondition:
     def contains(self, position: Position) -> bool:
         return position in self.positions
 
+
 @dataclass(frozen=True)
 class Move:
+    """Immutable move state."""
     player: Player
     position: Position
     timestamp: float
@@ -120,13 +135,16 @@ class Move:
     def create(cls, player: Player, position: Position, move_number: int) -> Move:
         return cls(player=player, position=position, timestamp=monotonic(), move_number=move_number)
 
+
 @dataclass(frozen=True)
 class Board:
+    """Immutable board state."""
     size: int = 3
     k: int = 3
     cells: tuple[Cell, ...] = field(default_factory=tuple)
 
     def __post_init__(self) -> None:
+        """Validate the board."""
         if self.size < 3:
             raise InvalidBoardSizeError("Board size must be at least 3")
         if self.k < 2 or self.k > self.size:
@@ -142,6 +160,7 @@ class Board:
 
     @classmethod
     def empty(cls, size: int = 3, k: int | None = None) -> Board:
+        """Create an empty board."""
         win_length = 3 if k is None else k
         return cls(size=size, k=win_length)
 
@@ -182,6 +201,7 @@ class Board:
         return format(self, "grid")
 
     def __format__(self, spec: str) -> str:
+        """Format the board as a string."""
         spec = spec or "grid"
         if spec == "compact":
             return "|".join("".join(cell.value for cell in row) for row in self.rows())
@@ -206,8 +226,10 @@ class Board:
         msg = f"Unknown Board format spec {spec!r}"
         raise ValueError(msg)
 
+
 @dataclass(frozen=True)
 class GameState:
+    """Immutable game state."""
     board: Board = field(default_factory=Board)
     next_player: Player = Player.X
     history: tuple[Move, ...] = field(default_factory=tuple)
