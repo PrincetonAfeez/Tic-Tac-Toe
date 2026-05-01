@@ -206,3 +206,24 @@ class Board:
         msg = f"Unknown Board format spec {spec!r}"
         raise ValueError(msg)
 
+@dataclass(frozen=True)
+class GameState:
+    board: Board = field(default_factory=Board)
+    next_player: Player = Player.X
+    history: tuple[Move, ...] = field(default_factory=tuple)
+    outcome: Outcome = Outcome.IN_PROGRESS
+    winning_line: WinCondition | None = None
+    misere: bool = False
+    started_at: float = field(default_factory=monotonic)
+
+    @classmethod
+    def new(cls, size: int = 3, k: int | None = None, *, misere: bool = False) -> GameState:
+        return cls(board=Board.empty(size=size, k=3 if k is None else k), misere=misere)
+
+    @property
+    def move_count(self) -> int:
+        return len(self.history)
+
+    @property
+    def is_over(self) -> bool:
+        return self.outcome.is_terminal
