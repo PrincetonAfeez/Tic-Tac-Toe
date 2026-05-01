@@ -165,3 +165,22 @@ class CompositeRenderer(Renderer):
 
 
 
+def create_renderer(
+    name: str,
+    *,
+    colors: str = "classic",
+    no_color: bool = False,
+) -> Renderer:
+    scheme = ColorScheme.from_name(colors)
+    normalized = name.lower()
+    if normalized == "classic":
+        return ClassicRenderer(color_scheme=scheme, no_color=no_color)
+    if normalized == "coordinate":
+        return CoordinateRenderer(color_scheme=scheme, no_color=no_color)
+    if normalized == "minimal":
+        return MinimalRenderer()
+    if normalized == "big":
+        return BigRenderer(color_scheme=scheme, no_color=no_color)
+    msg = "Renderer must be one of: classic, coordinate, minimal, big"
+    raise ValueError(msg)
+
