@@ -106,3 +106,10 @@ class ClassicRenderer(Renderer):
         if state.winning_line is not None and state.winning_line.contains(position):
             text = ansi.style(text, self.color_scheme.highlight, enabled_=self.use_color)
         return text
+
+class CoordinateRenderer(ClassicRenderer):
+    def _cell_text(self, state: GameState, position: Position) -> str:
+        cell = state.board.at(position)
+        if cell is Player.NONE:
+            return ansi.style(position.label, self.color_scheme.dim, enabled_=self.use_color)
+        return super()._cell_text(state, position)
