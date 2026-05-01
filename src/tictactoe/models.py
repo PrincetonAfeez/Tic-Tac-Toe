@@ -7,3 +7,8 @@ from typing import ClassVar
 
 from .exceptions import CellOccupiedError, InvalidBoardSizeError, OutOfBoundsError
 
+class Player(Enum):
+    X = "X"
+    O = "O"
+    NONE = "."
+
