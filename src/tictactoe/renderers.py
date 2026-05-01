@@ -129,3 +129,30 @@ class BigRenderer(Renderer):
     def __init__(self, *, color_scheme: ColorScheme | None = None, no_color: bool = False) -> None:
         self.color_scheme = color_scheme or COLOR_SCHEMES["classic"]
         self.use_color = ansi.enabled(no_color)
+
+    def render(self, state: GameState) -> str:
+        lines: list[str] = []
+        for row in range(state.board.size):
+            art_rows = ["", "", ""]
+            for col in range(state.board.size):
+                position = Position(row, col)
+                cell = state.board.at(position)
+                art = self.ART[cell]
+                if cell is Player.X:
+                    code = self.color_scheme.x
+                elif cell is Player.O:
+                    code = self.color_scheme.o
+                else:
+                    code = self.color_scheme.dim
+                if state.winning_line is not None and state.winning_line.contains(position):
+                    code = self.color_scheme.highlight
+                for art_row, piece in enumerate(art):
+                    art_rows[art_row] += ansi.style(piece, code, enabled_=self.use_color and bool(code))
+                    if col < state.board.size - 1:
+                        art_rows[art_row] += " | "
+            lines.extend(art_rows)
+            if row < state.board.size - 1:
+                lines.append("-" * max(1, len(art_rows[0])))
+        lines.extend(["", outcome_text(state), _history_text(state)])
+        return "\n".join(lines)
+
