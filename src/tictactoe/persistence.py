@@ -83,3 +83,24 @@ def state_from_dict(data: dict[str, Any]) -> GameState:
         misere=bool(data.get("misere", False)),
         started_at=float(data.get("started_at", 0.0)),
     )
+
+class GameRepository(ABC):
+    @abstractmethod
+    def save(
+        self,
+        state: GameState,
+        *,
+        name: str | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> Path:
+
+    @abstractmethod
+    def load(self, path_or_name: str | Path) -> GameState:
+
+    @abstractmethod
+    def list(self) -> list[Path]:
+
+    @abstractmethod
+    def delete(self, path_or_name: str | Path) -> None:
+
+
