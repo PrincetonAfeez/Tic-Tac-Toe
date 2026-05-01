@@ -125,3 +125,18 @@ class Board:
     size: int = 3
     k: int = 3
     cells: tuple[Cell, ...] = field(default_factory=tuple)
+
+    def __post_init__(self) -> None:
+        if self.size < 3:
+            raise InvalidBoardSizeError("Board size must be at least 3")
+        if self.k < 2 or self.k > self.size:
+            raise InvalidBoardSizeError("Win length k must be between 2 and board size")
+        expected = self.size * self.size
+        cells = self.cells or (Player.NONE,) * expected
+        if len(cells) != expected:
+            raise InvalidBoardSizeError(
+                f"Expected {expected} cells for a {self.size}x{self.size} board, got {len(cells)}"
+            )
+        normalized = tuple(Player.from_value(cell) for cell in cells)
+        object.__setattr__(self, "cells", normalized)
+
