@@ -1,3 +1,5 @@
+"""JSON persistence and session statistics."""
+
 from __future__ import annotations
 
 import json
@@ -11,11 +13,15 @@ from typing import Any, cast
 from .config import APP_DIR
 from .models import Board, GameState, Move, Outcome, Player, Position, WinCondition
 
+
 def _safe_stem(text: str) -> str:
+    """Create a safe stem for a filename."""
     cleaned = re.sub(r"[^A-Za-z0-9_.-]+", "-", text.strip()).strip("-")
     return cleaned or "game"
 
+
 def state_to_dict(state: GameState, metadata: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Convert a game state to a dictionary."""
     return {
         "version": 1,
         "metadata": metadata or {},
@@ -49,7 +55,9 @@ def state_to_dict(state: GameState, metadata: dict[str, Any] | None = None) -> d
         "started_at": state.started_at,
     }
 
+
 def state_from_dict(data: dict[str, Any]) -> GameState:
+    """Create a game state from a dictionary."""
     board_data = data["board"]
     board = Board(
         size=int(board_data["size"]),
@@ -84,7 +92,9 @@ def state_from_dict(data: dict[str, Any]) -> GameState:
         started_at=float(data.get("started_at", 0.0)),
     )
 
+
 class GameRepository(ABC):
+    """Game repository."""
     @abstractmethod
     def save(
         self,
@@ -93,19 +103,24 @@ class GameRepository(ABC):
         name: str | None = None,
         metadata: dict[str, Any] | None = None,
     ) -> Path:
+        """Persist a state and return its path."""
 
     @abstractmethod
     def load(self, path_or_name: str | Path) -> GameState:
+        """Load a saved state."""
 
     @abstractmethod
     def list(self) -> list[Path]:
+        """List saved games."""
 
     @abstractmethod
     def delete(self, path_or_name: str | Path) -> None:
+        """Delete a saved game."""
 
 
 @dataclass
 class JsonGameRepository(GameRepository):
+    """JSON game repository."""
     root: Path = APP_DIR / "saves"
 
     def __post_init__(self) -> None:
@@ -149,7 +164,9 @@ class JsonGameRepository(GameRepository):
                 return candidate
         raise FileNotFoundError(path_or_name)
 
+
 class InMemoryGameRepository(GameRepository):
+    """In-memory game repository."""
     def __init__(self) -> None:
         self._games: dict[str, dict[str, Any]] = {}
 
@@ -174,7 +191,9 @@ class InMemoryGameRepository(GameRepository):
     def delete(self, path_or_name: str | Path) -> None:
         del self._games[Path(path_or_name).stem]
 
+
 class StatsRepository:
+    """Statistics repository."""
     def __init__(self, root: Path = APP_DIR) -> None:
         self.root = root
         self.root.mkdir(parents=True, exist_ok=True)
