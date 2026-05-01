@@ -50,3 +50,17 @@ class Outcome(Enum):
         if self is Outcome.O_WINS:
             return Player.O
         return None
+
+    @property
+    def is_terminal(self) -> bool:
+        return self is not Outcome.IN_PROGRESS
+
+    @classmethod
+    def for_winner(cls, player: Player) -> Outcome:
+        if player is Player.X:
+            return Outcome.X_WINS
+        if player is Player.O:
+            return Outcome.O_WINS
+        msg = "Player.NONE cannot win"
+        raise ValueError(msg)
+
