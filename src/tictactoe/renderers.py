@@ -96,3 +96,13 @@ class ClassicRenderer(Renderer):
                 _history_text(state),
             ]
         )
+
+    def _cell_text(self, state: GameState, position: Position) -> str:
+        cell = state.board.at(position)
+        if cell is Player.NONE:
+            return ansi.style(".", self.color_scheme.dim, enabled_=self.use_color)
+        code = self.color_scheme.x if cell is Player.X else self.color_scheme.o
+        text = ansi.style(cell.value, code, enabled_=self.use_color and bool(code))
+        if state.winning_line is not None and state.winning_line.contains(position):
+            text = ansi.style(text, self.color_scheme.highlight, enabled_=self.use_color)
+        return text
