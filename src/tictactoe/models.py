@@ -42,3 +42,11 @@ class Outcome(Enum):
     O_WINS = "o_wins"
     DRAW = "draw"
     ABANDONED = "abandoned"
+
+    @property
+    def winner(self) -> Player | None:
+        if self is Outcome.X_WINS:
+            return Player.X
+        if self is Outcome.O_WINS:
+            return Player.O
+        return None
