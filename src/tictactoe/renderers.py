@@ -34,3 +34,18 @@ class Renderer(ABC):
     @abstractmethod
     def render(self, state: GameState) -> str:
 
+
+def outcome_text(state: GameState) -> str:
+    if state.outcome is Outcome.IN_PROGRESS:
+        return f"Turn: {state.next_player.value}"
+    if state.outcome is Outcome.DRAW:
+        return "Draw"
+    if state.outcome is Outcome.ABANDONED:
+        return "Abandoned"
+    winner = state.outcome.winner
+    assert winner is not None
+    if state.misere and state.winning_line is not None:
+        loser = state.winning_line.player
+        return f"{winner.value} wins; {loser.value} made the line"
+    return f"{winner.value} wins"
+
