@@ -145,3 +145,64 @@ class Board:
         win_length = 3 if k is None else k
         return cls(size=size, k=win_length)
 
+    def index(self, position: Position) -> int:
+        return position.to_index(self.size)
+
+    def at(self, position: Position) -> Cell:
+        return self.cells[self.index(position)]
+
+    def place(self, player: Player, position: Position) -> Board:
+        if player is Player.NONE:
+            msg = "Player.NONE cannot be placed on the board"
+            raise ValueError(msg)
+        index = self.index(position)
+        if self.cells[index] is not Player.NONE:
+            raise CellOccupiedError(f"Cell {position} is already occupied")
+        cells = list(self.cells)
+        cells[index] = player
+        return Board(size=self.size, k=self.k, cells=tuple(cells))
+
+    @property
+    def filled_count(self) -> int:
+        return sum(cell is not Player.NONE for cell in self.cells)
+
+    @property
+    def is_full(self) -> bool:
+        return self.filled_count == len(self.cells)
+
+    def positions(self) -> tuple[Position, ...]:
+        return tuple(Position.from_index(index, self.size) for index in range(self.size * self.size))
+
+    def rows(self) -> tuple[tuple[Cell, ...], ...]:
+        return tuple(
+            self.cells[row * self.size : (row + 1) * self.size] for row in range(self.size)
+        )
+
+    def __str__(self) -> str:
+        return format(self, "grid")
+
+    def __format__(self, spec: str) -> str:
+        spec = spec or "grid"
+        if spec == "compact":
+            return "|".join("".join(cell.value for cell in row) for row in self.rows())
+        if spec == "numbered":
+            width = len(str(self.size * self.size))
+            rows: list[str] = []
+            for row in range(self.size):
+                parts = []
+                for col in range(self.size):
+                    pos = Position(row, col)
+                    cell = self.at(pos)
+                    text = str(pos.to_index(self.size) + 1) if cell is Player.NONE else cell.value
+                    parts.append(text.rjust(width))
+                rows.append(" ".join(parts))
+            return "\n".join(rows)
+        if spec == "grid":
+            rows = []
+            separator = "\n" + "+".join(["---"] * self.size) + "\n"
+            for board_row in self.rows():
+                rows.append(" " + " | ".join(cell.value for cell in board_row) + " ")
+            return separator.join(rows)
+        msg = f"Unknown Board format spec {spec!r}"
+        raise ValueError(msg)
+
