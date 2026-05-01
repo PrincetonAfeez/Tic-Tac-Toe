@@ -174,3 +174,42 @@ class InMemoryGameRepository(GameRepository):
     def delete(self, path_or_name: str | Path) -> None:
         del self._games[Path(path_or_name).stem]
 
+class StatsRepository:
+    def __init__(self, root: Path = APP_DIR) -> None:
+        self.root = root
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.path = self.root / "stats.json"
+        self.history_path = self.root / "history.jsonl"
+
+    def load(self) -> dict[str, dict[str, int]]:
+        if not self.path.exists():
+            return {}
+        return cast(dict[str, dict[str, int]], json.loads(self.path.read_text(encoding="utf-8")))
+
+    def record_game(self, state: GameState, *, x_agent: str, o_agent: str) -> None:
+        if state.outcome is Outcome.IN_PROGRESS:
+            return
+        stats = self.load()
+        for agent in {x_agent, o_agent}:
+            stats.setdefault(agent, {"wins": 0, "losses": 0, "draws": 0})
+        if state.outcome is Outcome.DRAW:
+            stats[x_agent]["draws"] += 1
+            stats[o_agent]["draws"] += 1
+        elif state.outcome.winner is Player.X:
+            stats[x_agent]["wins"] += 1
+            stats[o_agent]["losses"] += 1
+        elif state.outcome.winner is Player.O:
+            stats[o_agent]["wins"] += 1
+            stats[x_agent]["losses"] += 1
+        self.path.write_text(json.dumps(stats, indent=2), encoding="utf-8")
+        event = {
+            "completed_at": datetime.now().isoformat(timespec="seconds"),
+            "x_agent": x_agent,
+            "o_agent": o_agent,
+            "outcome": state.outcome.value,
+            "size": state.board.size,
+            "k": state.board.k,
+            "moves": state.move_count,
+        }
+        with self.history_path.open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps(event) + "\n")
