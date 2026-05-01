@@ -35,3 +35,10 @@ class Player(Enum):
 
 
 Cell = Player
+
+class Outcome(Enum):
+    IN_PROGRESS = "in_progress"
+    X_WINS = "x_wins"
+    O_WINS = "o_wins"
+    DRAW = "draw"
+    ABANDONED = "abandoned"
