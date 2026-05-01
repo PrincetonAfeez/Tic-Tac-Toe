@@ -109,3 +109,14 @@ class WinCondition:
     def contains(self, position: Position) -> bool:
         return position in self.positions
 
+@dataclass(frozen=True)
+class Move:
+    player: Player
+    position: Position
+    timestamp: float
+    move_number: int
+
+    @classmethod
+    def create(cls, player: Player, position: Position, move_number: int) -> Move:
+        return cls(player=player, position=position, timestamp=monotonic(), move_number=move_number)
+
