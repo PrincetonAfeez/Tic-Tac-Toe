@@ -24,3 +24,14 @@ class Player(Enum):
     def is_mark(self) -> bool:
         return self is not Player.NONE
 
+    @classmethod
+    def from_value(cls, value: str | Player) -> Player:
+        if isinstance(value, Player):
+            return value
+        normalized = value.strip().upper()
+        if normalized in {"", ".", "NONE", "-"}:
+            return Player.NONE
+        return Player(normalized)
+
+
+Cell = Player
