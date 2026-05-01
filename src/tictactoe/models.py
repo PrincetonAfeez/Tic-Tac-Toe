@@ -120,3 +120,8 @@ class Move:
     def create(cls, player: Player, position: Position, move_number: int) -> Move:
         return cls(player=player, position=position, timestamp=monotonic(), move_number=move_number)
 
+@dataclass(frozen=True)
+class Board:
+    size: int = 3
+    k: int = 3
+    cells: tuple[Cell, ...] = field(default_factory=tuple)
