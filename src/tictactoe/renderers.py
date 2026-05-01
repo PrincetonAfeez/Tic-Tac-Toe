@@ -119,3 +119,13 @@ class MinimalRenderer(Renderer):
         return f"{state.board:compact} {state.outcome.value}"
 
 
+class BigRenderer(Renderer):
+    ART = {
+        Player.X: ("X   X", "  X  ", "X   X"),
+        Player.O: (" OOO ", "O   O", " OOO "),
+        Player.NONE: ("     ", "  .  ", "     "),
+    }
+
+    def __init__(self, *, color_scheme: ColorScheme | None = None, no_color: bool = False) -> None:
+        self.color_scheme = color_scheme or COLOR_SCHEMES["classic"]
+        self.use_color = ansi.enabled(no_color)
