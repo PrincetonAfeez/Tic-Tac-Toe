@@ -48,3 +48,38 @@ def state_to_dict(state: GameState, metadata: dict[str, Any] | None = None) -> d
         "misere": state.misere,
         "started_at": state.started_at,
     }
+
+def state_from_dict(data: dict[str, Any]) -> GameState:
+    board_data = data["board"]
+    board = Board(
+        size=int(board_data["size"]),
+        k=int(board_data["k"]),
+        cells=tuple(Player.from_value(cell) for cell in board_data["cells"]),
+    )
+    history = tuple(
+        Move(
+            player=Player.from_value(item["player"]),
+            position=Position(int(item["row"]), int(item["col"])),
+            timestamp=float(item["timestamp"]),
+            move_number=int(item["move_number"]),
+        )
+        for item in data.get("history", [])
+    )
+    line_data = data.get("winning_line")
+    winning_line = None
+    if line_data is not None:
+        winning_line = WinCondition(
+            player=Player.from_value(line_data["player"]),
+            positions=tuple(
+                Position(int(item["row"]), int(item["col"])) for item in line_data["positions"]
+            ),
+        )
+    return GameState(
+        board=board,
+        next_player=Player.from_value(data["next_player"]),
+        history=history,
+        outcome=Outcome(data["outcome"]),
+        winning_line=winning_line,
+        misere=bool(data.get("misere", False)),
+        started_at=float(data.get("started_at", 0.0)),
+    )
