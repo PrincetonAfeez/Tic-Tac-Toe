@@ -148,3 +148,29 @@ class JsonGameRepository(GameRepository):
             if candidate.exists():
                 return candidate
         raise FileNotFoundError(path_or_name)
+
+class InMemoryGameRepository(GameRepository):
+    def __init__(self) -> None:
+        self._games: dict[str, dict[str, Any]] = {}
+
+    def save(
+        self,
+        state: GameState,
+        *,
+        name: str | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> Path:
+        stem = _safe_stem(name or f"game-{len(self._games) + 1}")
+        self._games[stem] = state_to_dict(state, metadata)
+        return Path(stem)
+
+    def load(self, path_or_name: str | Path) -> GameState:
+        stem = Path(path_or_name).stem
+        return state_from_dict(self._games[stem])
+
+    def list(self) -> list[Path]:
+        return [Path(key) for key in sorted(self._games)]
+
+    def delete(self, path_or_name: str | Path) -> None:
+        del self._games[Path(path_or_name).stem]
+
