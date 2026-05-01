@@ -72,3 +72,27 @@ class ClassicRenderer(Renderer):
         self.use_color = ansi.enabled(no_color)
         self.show_coordinates = show_coordinates
 
+    def render(self, state: GameState) -> str:
+        board = state.board
+        width = max(3, len(str(board.size)))
+        header = " " * 4 + " ".join(f"{col + 1:^{width}}" for col in range(board.size))
+        rows: list[str] = []
+        for row in range(board.size):
+            parts = []
+            for col in range(board.size):
+                position = Position(row, col)
+                parts.append(f"{self._cell_text(state, position):^{width}}")
+            label = Position.ROW_LABELS[row] if row < len(Position.ROW_LABELS) else str(row + 1)
+            rows.append(f"{label:>2}  " + " | ".join(parts))
+        separator = "    " + "-+-".join("-" * width for _ in range(board.size))
+        board_text = f"\n{separator}\n".join(rows)
+        if self.show_coordinates:
+            board_text = f"{header}\n{board_text}"
+        return "\n".join(
+            [
+                board_text,
+                "",
+                f"{outcome_text(state)}  |  Moves: {state.move_count}  |  Board: {board.size}x{board.size}, k={board.k}",
+                _history_text(state),
+            ]
+        )
