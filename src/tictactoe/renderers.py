@@ -156,3 +156,12 @@ class BigRenderer(Renderer):
         lines.extend(["", outcome_text(state), _history_text(state)])
         return "\n".join(lines)
 
+class CompositeRenderer(Renderer):
+    def __init__(self, board_renderer: Renderer) -> None:
+        self.board_renderer = board_renderer
+
+    def render(self, state: GameState) -> str:
+        return self.board_renderer.render(state)
+
+
+
