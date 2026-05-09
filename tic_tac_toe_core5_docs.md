@@ -5,7 +5,7 @@
 
 **Status:** Accepted  
 **Date:** 2026-05-09  
-**Project:** `tictactoe-princ` / `tictactoe`
+***Project:*** `tictactoe-princ` / `tictactoe`
 
 ---
 
