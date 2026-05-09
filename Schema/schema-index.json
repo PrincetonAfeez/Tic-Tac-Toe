@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/PrincetonAfeez/Tic-Tac-Toe/Schema/schema-index.json",
+  "title": "Tic-Tac-Toe Schema Catalog",
+  "description": "Index of schema files for the Tic-Tac-Toe project.",
+  "type": "object",
+  "properties": {
+    "schemas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "file",
+          "purpose"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "file": {
+            "type": "string"
+          },
+          "purpose": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "default": [
+        {
+          "name": "Domain Model",
+          "file": "domain.schema.json",
+          "purpose": "Reusable definitions for board, moves, players, outcomes, and game state."
+        },
+        {
+          "name": "Game Save",
+          "file": "game-save.schema.json",
+          "purpose": "Validates JSON files created by JsonGameRepository.save()."
+        },
+        {
+          "name": "Stats",
+          "file": "stats.schema.json",
+          "purpose": "Validates ~/.tictactoe/stats.json."
+        },
+        {
+          "name": "History Event",
+          "file": "history-event.schema.json",
+          "purpose": "Validates one JSONL line from ~/.tictactoe/history.jsonl."
+        },
+        {
+          "name": "Config",
+          "file": "config.schema.json",
+          "purpose": "Documents and validates the parsed shape of ~/.tictactoe/config.toml."
+        }
+      ]
+    }
+  },
+  "required": [
+    "schemas"
+  ],
+  "additionalProperties": false
+}

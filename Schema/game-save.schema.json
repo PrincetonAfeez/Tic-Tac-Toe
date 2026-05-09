@@ -1,0 +1,7 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/PrincetonAfeez/Tic-Tac-Toe/Schema/game-save.schema.json",
+  "title": "Tic-Tac-Toe Saved Game Schema",
+  "description": "Validates JSON game saves produced by state_to_dict() / JsonGameRepository.save().",
+  "$ref": "./domain.schema.json#/$defs/GameState"
+}

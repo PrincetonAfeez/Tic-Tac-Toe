@@ -1,0 +1,3 @@
+# Editable install with dev extras (tests, Hypothesis, Ruff, Mypy).
+# Matches [project.optional-dependencies] dev in pyproject.toml.
+-e ".[dev]"

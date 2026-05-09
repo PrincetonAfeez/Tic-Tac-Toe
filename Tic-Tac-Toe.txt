@@ -1,0 +1,161 @@
+Tic-Tac-Toe
+
+Features — chosen for what each one proves
+Core domain (demonstrates: dataclasses, immutability, enums, operator overloading)
+
+Player Enum: X, O, NONE — with opponent property returning the other player
+Cell Enum (or alias): same as Player, used for board contents — explicit about the distinction between "whose turn" and "what's in a square"
+Position dataclass (@dataclass(frozen=True)) — row, col, with validation and a to_index() method. Hashable, usable as dict key.
+Board class — immutable, @dataclass(frozen=True) wrapping a tuple of cells. Every move returns a new board, never mutates. This is the single most important design decision in the project: it makes undo, replay, AI search, and testing all trivial.
+Move dataclass — player, position, timestamp (monotonic), move number. The atomic unit of game history.
+GameState dataclass — current board, next player, move history as a tuple, outcome. Immutable. Transitions produce new states.
+Outcome Enum: IN_PROGRESS, X_WINS, O_WINS, DRAW, ABANDONED — explicit terminal vocabulary
+WinCondition dataclass — describes a winning line (the three positions plus the player), attached to the outcome for rendering purposes
+Operator overloading on Board: __eq__, __hash__ (enables memoization in the AI), __str__, __format__ with specs compact, grid, numbered
+Custom exception hierarchy: GameError → InvalidMoveError, CellOccupiedError, OutOfBoundsError, GameOverError, InvalidBoardSizeError
+
+Game engine (demonstrates: pure functions, state transitions, no hidden state)
+
+make_move(state, position) -> GameState — pure function, returns new state or raises. Every rule enforcement lives here. No side effects anywhere.
+available_moves(board) -> list[Position] — pure, returns empty positions
+check_winner(board) -> Outcome — pure, checks rows/cols/diagonals, returns outcome plus winning line if applicable
+undo(state) -> GameState — pure, returns previous state by walking history. Because boards are immutable, undo is just "take the previous state"; no reversal logic to get wrong.
+Generalized to NxN — the engine works for 3x3, 4x4, 5x5 with configurable k (cells in a row to win). Classic tic-tac-toe is N=3, k=3. "Gomoku-lite" is N=5, k=4. Implementing the general case is barely harder than the 3x3-specific case and unlocks variants for free.
+Everything is pure. If you find yourself writing self.something = ..., stop. State transitions return new objects. Document this as the core architectural principle in ARCHITECTURE.md.
+
+AI players (demonstrates: strategy pattern, recursion, memoization, algorithmic thinking)
+
+Player Protocol (different from the enum — name it Agent to avoid collision) with choose_move(state: GameState) -> Position
+Five implementations with increasing sophistication:
+
+HumanAgent — prompts for input via CLI, validates, retries on error. Proves the abstraction: humans and AIs are interchangeable from the engine's perspective.
+RandomAgent — picks uniformly from available moves. Baseline for testing.
+HeuristicAgent — rule-based: win if possible, block opponent's win if possible, take center, take corner, take edge. Classic beginner tic-tac-toe strategy. Beatable but respectable.
+MinimaxAgent — full game tree search with alpha-beta pruning. Provably optimal on 3x3; never loses. Uses functools.lru_cache on the recursive function, keyed by board hash.
+MonteCarloRolloutAgent (CLI: mcts) — flat Monte Carlo rollouts from each root move, not full UCT; configurable simulations per move. Lighter than tree MCTS; still useful on larger boards where full minimax is costly.
+
+
+AgentRegistry — --x-agent human --o-agent minimax lets any two agents play each other
+Difficulty levels on minimax: easy (random with 40% chance, otherwise minimax), medium (depth-limited), hard (full). Same class, depth as a parameter.
+Search stats — minimax reports nodes visited and cache hits after each move, in a debug pane. Makes the algorithm's work visible; great for the teaching story.
+
+Rendering (demonstrates: strategy pattern, pure functions, separation of concerns)
+Critical rule: renderers take state, return strings. A Display class owns the terminal.
+
+Renderer ABC with render(state: GameState) -> str
+Four renderers:
+
+ClassicRenderer — ASCII grid with box-drawing characters, colored X/O, winning line highlighted
+BigRenderer — multi-line ASCII art X and O, one per cell. Dramatic, good for demos.
+MinimalRenderer — compact, no ANSI, pipe-friendly (X.O|.X.|O..)
+CoordinateRenderer — grid with row/column labels (A1, A2, B1...) for accessibility and teaching
+
+
+ColorScheme dataclass — built-in schemes: classic (red X / blue O), monochrome, colorblind-safe
+ANSI module written by hand (~40 lines) — cursor move, color, clear, hide/show cursor. Respects NO_COLOR and --no-color.
+Multi-pane layout via a CompositeRenderer: board pane, status pane (current player, move count, time elapsed), history pane (last 5 moves), AI-stats pane (when an AI is thinking)
+Winning line animation: when a game ends, the three winning cells blink/flash for 2 seconds. Small touch, big user delight.
+Diff-based redraw in Display — only rewrite what changed. Understand why naive redraws flicker.
+
+Interactive controls (demonstrates: raw terminal I/O, context managers, command pattern)
+
+Context manager raw_terminal() using termios/tty on Unix, documenting Windows fallback. Restores terminal state on exit, even on exception or SIGINT.
+Two input modes, user-selectable:
+
+Keypad mode — number keys 1–9 map to cells (numpad layout, so 7-8-9 top row, 1-2-3 bottom row). Classic and fast.
+Arrow mode — arrow keys navigate a cursor, Enter to place. Feels more modern.
+
+
+Keybindings via command registry:
+
+1–9 — place on cell (keypad mode)
+arrow keys + Enter (arrow mode)
+u — undo last move (takes back both players' moves in PvP, or just yours in PvAI)
+r — restart game
+n — new match (resets scores too)
+s — save game
+l — load game
+h — show move hint (runs minimax on your move and highlights the best)
+? — help overlay, generated from command registry
+q — quit with confirmation
+
+
+Signal handling — SIGINT prompts "save before quitting?" rather than dying silently. Never leave the user hanging.
+
+Game modes (demonstrates: composition, configuration)
+
+Player vs Player (local, hotseat)
+Player vs AI with agent and difficulty selectable
+AI vs AI — watch two agents play, auto-advance with configurable delay. Great for demos and for testing AI strength.
+Tournament mode — run N games between two agents, report win/loss/draw stats. Proves minimax never loses to anyone on 3x3.
+Board size selection: 3x3 classic, 4x4, 5x5, with configurable k (3, 4, 5 in a row to win)
+Misère variant — flip the win condition: whoever gets k-in-a-row loses. Same engine, one flag. Shows the engine's generality.
+
+Persistence (demonstrates: serialization, repository pattern, pathlib)
+
+Save/load game to JSON — full state, history, agent types, board config. Loading restores the game exactly, including whose turn.
+GameRepository ABC with save, load, list, delete
+JsonGameRepository — persists to ~/.tictactoe/saves/*.json
+InMemoryGameRepository — for tests
+Save filenames auto-generated from timestamp + player names, user-nameable via s key
+Replay mode — load a finished game and step through move-by-move, same controls as binary search visualizer if you did that project. Teaching tool.
+Match stats at ~/.tictactoe/stats.json — per-agent win/loss/draw records across sessions. Small feature, big "treats it like a real tool" signal.
+Session log at ~/.tictactoe/history.jsonl — append-only record of every completed game. Enables tictactoe stats.
+
+CLI (demonstrates: argparse subcommands, composability)
+
+tictactoe play — interactive mode with prompts to choose opponents and settings
+tictactoe play --x human --o minimax --size 3 — direct start
+tictactoe watch --x minimax --o mcts --size 4 --delay 0.5 — AI vs AI spectator mode
+tictactoe tournament --x minimax --o heuristic --games 100 — batch mode, prints result summary
+tictactoe replay <save-file> — step through a saved game
+tictactoe stats — aggregate stats across all saved games
+tictactoe analyze <save-file> — walk through the game and at each move, show what minimax would have played. Post-game teaching.
+Global flags: --size, --k, --renderer, --colors, --no-color, --misere, --input-mode keypad|arrow
+
+Configuration (demonstrates: stdlib fluency, pathlib, precedence)
+
+~/.tictactoe/config.toml via tomllib:
+
+Default board size, k, renderer, color scheme
+Default opponents for quick-start
+Preferred input mode
+AI settings (minimax depth limit, mcts rollout simulation count)
+
+
+Precedence: CLI flags > config > defaults. Documented in README.
+pathlib.Path everywhere, directories auto-created
+
+Testing (demonstrates: pytest, parametrization, property-based testing, mocking)
+
+Board immutability tests — mutate a cell, assert FrozenInstanceError. Tuple-backed boards can't be mutated even through .cells[i] = ....
+Engine correctness tests — parametrized over known game outcomes (fork, block, threefold draw, immediate win). Each is a sequence of moves with expected final state.
+Invalid move tests — out-of-bounds, occupied cell, wrong turn, post-game moves — each raises the right exception
+Win detection tests — every possible winning line (rows, cols, diagonals) for sizes 3, 4, 5 — parametrized, exhaustive
+AI tests:
+
+RandomAgent never picks an occupied cell
+HeuristicAgent always takes an immediate win, always blocks an immediate threat
+MinimaxAgent never loses on 3x3 — this is the big one. Run MinimaxAgent vs RandomAgent for 1000 games, assert minimax has zero losses. Run MinimaxAgent vs MinimaxAgent, assert every game is a draw. These two assertions prove the algorithm correct.
+
+
+Property-based tests with hypothesis:
+
+For any valid move sequence, len(state.history) == state.board.filled_count
+For any state, undo(make_move(state, pos)) == state
+For any state, available_moves returns exactly the empty cells
+For any board, if check_winner reports a winner, the winning line actually contains three of that player's marks
+
+
+Renderer tests — pass known state, assert output matches fixture
+CLI integration tests via subprocess for deterministic subcommands (tournament, analyze)
+Target >90% coverage on engine and AI code
+
+Tooling & docs (demonstrates: you treat this as real software)
+
+pyproject.toml with console entry point, dev deps, package data
+ruff + mypy clean, type hints throughout
+README.md — install, usage examples for every mode, keybindings table, a terminal GIF of a minimax game ending in a draw
+ARCHITECTURE.md — five sections: (1) immutable state as the core invariant, (2) engine as pure functions, (3) agents as a strategy family, (4) renderers as pure state→string, (5) replay and analysis as free consequences of the first four
+ALGORITHMS.md — explain minimax with alpha-beta, show the game tree for a simple position, discuss why memoization works (board hash → evaluation), give rough state-space numbers
+BENCHMARKS.md — tictactoe tournament --games 1000 results across agent pairings. Minimax vs Random: ~70% win, ~30% draw, 0% loss. Minimax vs Minimax: 100% draw. Empirical proof of optimality.

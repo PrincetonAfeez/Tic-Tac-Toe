@@ -1,0 +1,156 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/PrincetonAfeez/Tic-Tac-Toe/Schema/config.schema.json",
+  "title": "Tic-Tac-Toe Config Schema",
+  "description": "JSON Schema for the parsed object form of ~/.tictactoe/config.toml.",
+  "type": "object",
+  "properties": {
+    "board": {
+      "type": "object",
+      "properties": {
+        "size": {
+          "type": "integer",
+          "minimum": 3,
+          "default": 3
+        },
+        "k": {
+          "type": "integer",
+          "minimum": 2,
+          "default": 3
+        },
+        "misere": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "display": {
+      "type": "object",
+      "properties": {
+        "renderer": {
+          "type": "string",
+          "enum": [
+            "classic",
+            "coordinate",
+            "minimal",
+            "big"
+          ],
+          "default": "classic"
+        },
+        "colors": {
+          "type": "string",
+          "enum": [
+            "classic",
+            "monochrome",
+            "colorblind"
+          ],
+          "default": "classic"
+        },
+        "no_color": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "agents": {
+      "type": "object",
+      "properties": {
+        "x": {
+          "type": "string",
+          "enum": [
+            "human",
+            "random",
+            "heuristic",
+            "minimax",
+            "minimax-easy",
+            "minimax-medium",
+            "minimax-hard",
+            "mcts"
+          ],
+          "default": "human"
+        },
+        "o": {
+          "type": "string",
+          "enum": [
+            "human",
+            "random",
+            "heuristic",
+            "minimax",
+            "minimax-easy",
+            "minimax-medium",
+            "minimax-hard",
+            "mcts"
+          ],
+          "default": "minimax"
+        }
+      },
+      "additionalProperties": false
+    },
+    "input": {
+      "type": "object",
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "keypad",
+            "arrow"
+          ],
+          "default": "keypad"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ai": {
+      "type": "object",
+      "properties": {
+        "minimax_depth": {
+          "description": "Null means search full depth, except large boards can be depth-limited by the CLI.",
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "minimum": 1
+            }
+          ],
+          "default": null
+        },
+        "mcts_simulations": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 200
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "board": {
+        "size": 3,
+        "k": 3,
+        "misere": false
+      },
+      "display": {
+        "renderer": "classic",
+        "colors": "classic",
+        "no_color": false
+      },
+      "agents": {
+        "x": "human",
+        "o": "minimax"
+      },
+      "input": {
+        "mode": "keypad"
+      },
+      "ai": {
+        "minimax_depth": null,
+        "mcts_simulations": 200
+      }
+    }
+  ]
+}

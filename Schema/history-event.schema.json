@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/PrincetonAfeez/Tic-Tac-Toe/Schema/history-event.schema.json",
+  "title": "Tic-Tac-Toe History Event Schema",
+  "description": "Validates a single JSON object line appended to ~/.tictactoe/history.jsonl.",
+  "type": "object",
+  "required": [
+    "completed_at",
+    "x_agent",
+    "o_agent",
+    "outcome",
+    "size",
+    "k",
+    "moves"
+  ],
+  "properties": {
+    "completed_at": {
+      "type": "string",
+      "description": "Local ISO-8601 timestamp written with seconds precision.",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}$"
+    },
+    "x_agent": {
+      "type": "string",
+      "enum": [
+        "human",
+        "random",
+        "heuristic",
+        "minimax",
+        "minimax-easy",
+        "minimax-medium",
+        "minimax-hard",
+        "mcts"
+      ]
+    },
+    "o_agent": {
+      "type": "string",
+      "enum": [
+        "human",
+        "random",
+        "heuristic",
+        "minimax",
+        "minimax-easy",
+        "minimax-medium",
+        "minimax-hard",
+        "mcts"
+      ]
+    },
+    "outcome": {
+      "$ref": "./domain.schema.json#/$defs/Outcome"
+    },
+    "size": {
+      "type": "integer",
+      "minimum": 3
+    },
+    "k": {
+      "type": "integer",
+      "minimum": 2
+    },
+    "moves": {
+      "type": "integer",
+      "minimum": 0
+    }
+  },
+  "additionalProperties": false
+}
